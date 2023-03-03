@@ -1,0 +1,19 @@
+{
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "text": "\nanswers: Apache Arrow, Neo4j, Graph Projections, Cloud Object Storage, Cloud Data Warehouses, Neo4j Graph Data Science Python Client, Parallelize in Python"
+      }
+    ],
+    "created": 1677299003,
+    "id": "cmpl-6ngNf8swKB6ajAWVQrjxQZ5pt6WBr",
+    "model": "text-davinci-003",
+    "object": "text_completion",
+    "usage": {
+      "completion_tokens": 38,
+      "prompt_tokens": 241,
+      "total_tokens": 279
+    }
+  }
