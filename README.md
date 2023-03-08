@@ -11,24 +11,33 @@ OPENAI_API_KEY="<your_open_api_key>"
 Running example: `pipenv run python3 app.py -f imports/2020_nodes.csv -hl Title Bio -kl Speakers -o 2020.csv`
 
 # Options
-| Flag  | Description | Sample Value |
-| ---- | ----- | -----|
-| -f | Filepath of .csv file to process | "imports/2020_nodes.csv" |
-| -o | Output filepath of new .csv | "2020.csv" (All exports will automatically placed into the exports/ folder) |
-| -hl | List of header row values to use for generating keywords from | Title Description Bio |
-| -kl | List of header row values to pass onto the output .csv file | SpeakerId |
+| Flag  | Verbose Flag |Description | Sample Value |
+| ---- | ----- | -----| ---- |
+| -i | --input | Input filepath of .csv file to process | "imports/2020_nodes.csv" |
+| -o | --output | Output filepath of new .csv | "2020.csv" (All exports will automatically placed into the exports/ folder) |
+| -sh | --source_headers | Space separated list of header row values to use for generating keywords from | Title Description "Header with spaces" |
+| -kh | --keep-headers | Space separated list of header and row values to pass onto the output .csv file | SpeakerId "Session Title" |
 
 # Output
 A row will be created for each keyword and kept (-kl arg) header values, for example:
 ```
-SpeakerId, Keyword
-abc123, neo4j
-abc123, cypher
+SpeakerId, Session Title, Keyword
+abc123, Session Alpha, neo4j
+abc123, Session Alpha, cypher
 ```
+
+# Testing
+`pipenv run pytest`
 
 # PIPENV NOTES
 Using pipenv to manage virtaul env
 
 To start: `pipenv shell`
 To add new lib: `pipenv install <package_name>`
-To run: `pipenv run python3 app.py`
+Example runs: 
+
+`pipenv run python3 app.py -i imports/2019_nodes.csv -o 2019.csv -sh "Title of Talk" Description -kh First Email`
+
+`pipenv run python3 app.py -i imports/2020_nodes.csv -o 2020.csv -sh Title Bio -kh Event Speakers`
+
+`pipenv run python3 app.py -i imports/2022_nodes.csv -o 2022.csv -sh Title Description "Topic of your presentation" Bio -kh Event "Owner Email"`
