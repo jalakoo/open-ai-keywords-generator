@@ -34,10 +34,9 @@ Using pipenv to manage virtaul env
 
 To start: `pipenv shell`
 To add new lib: `pipenv install <package_name>`
-Example runs: 
+Example run commands: 
 
-`pipenv run python3 app.py -i imports/2019_nodes.csv -o 2019.csv -sh "Title of Talk" Description -kh First Email`
-
-`pipenv run python3 app.py -i imports/2020_nodes.csv -o 2020.csv -sh Title Bio -kh Event Speakers`
-
-`pipenv run python3 app.py -i imports/2022_nodes.csv -o 2022.csv -sh Title Description "Topic of your presentation" Bio -kh Event "Owner Email"`
+`pipenv run python3 app.py -i imports/2019_nodes.csv -o 2019.csv -sh Industries "Your Professional Title" "Social Links" Title Description Technologies Bio  -kh Event Name Email`
+`pipenv run python3 app.py -i imports/2020_nodes.csv -o 2020.csv -sh Title Bio -kh Event Speakers "Title / Company"`
+`pipenv run python3 app.py -i imports/2022_nodes.csv -o 2022.csv -sh Title Description "Topic of your presentation" "Pre-requisites for attendees?" "LinkedIn" "Blog" "Owner Notes" Bio -kh Event Owner "Owner Email"`
+`pipenv run python3 app.py -i imports/meetups.csv -o meetups.csv -sh eventUrl name topic -kh source meetup_event_id name state city`

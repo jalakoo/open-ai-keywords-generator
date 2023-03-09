@@ -49,12 +49,60 @@ def keywords_from_openai_response(response:dict) -> list:
     
     # Extract the JSON string by removing the initial text
     answers = response_text.split(": ")[1]
+
     answers_list = answers.split(", ")
     if isinstance(answers_list, list) is False:
         logging.error(f'keywords_from_openai_response: {answers_list} was not an instance of a list')
         return None
     return answers_list
 
+
+def urls_from_string(text: str):
+    import re
+
+    x=text.split()
+    urls=[]
+    for i in x:
+        if i.startswith("https:") or i.startswith("http:"):
+            urls.append(i)
+
+    cleaned = [re.sub('[^a-zA-Z0-9]+$','',item) for item in urls]
+    return cleaned
+
+def openai_keywords_from_webpage(url: str) -> list[str]:
+    prompt = f'''
+    Given a prompte, generate a list of software technology keywords and related programming languages (like python, javascript, java, go, c++) from a summary of a webpage as a list of answers.
+
+    webpage url: https://www.meetup.com/graph-database-san-diego/events/291318783/
+    answers: Graph Databases, Graph Data Modeling, Data Model, Mock Data, Neo4j
+
+    webpage url:  {url}
+    '''
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt=prompt,
+        temperature=0.5,
+        max_tokens=60,
+        top_p=1.0,
+        frequency_penalty=0.8,
+        presence_penalty=0.0
+        )
+
+    logging.debug(f'response: {response}')
+    keywords = keywords_from_openai_response(response)
+    if keywords is not None:
+        logging.debug(f'keywords: {keywords}')
+
+    return keywords
+
+def openapi_keywords_from_multiple_webpages(urls: list[str]) -> list[str]:
+    # Aggregate all keywords from all urls
+    keywords = []
+    for url in urls:
+        url_keywords = openai_keywords_from_webpage(url)
+        if url_keywords is not None:
+            keywords.extend(url_keywords)
+    return keywords
 
 def openai_keywords_from_text(text: str) -> list[str]:
     # Promptsmithing to get a consistent response from openai
@@ -148,17 +196,39 @@ def records_from_csv(
 
     # Create a list of records for export
     records = []
-    for row in rows:
+    for idx, row in enumerate(rows):
+        logging.info(f'Processing row {idx} or {len(rows)}')
         combined_text = ""
+        combined_urls = []
         for header in headers_to_use:
             if header not in row:
                 # Check to see if the desired header is actually in the imported data
                 raise Exception(f'records_from_csv: target header {header} not found in row: {row}')
-            combined_text += row[header] + ' '
+            # TODO
+            # Extract url strings for special processing
+            # Combine text from string only columns
+            urls = urls_from_string(row[header])
+            if len(urls) == 0:
+                # This row has no urls, so add it to the combined text
+                combined_text += row[header] + ' '
+            else:
+                # This row has urls, skip any other text, and just generate list of keywords from page summaries
+                combined_urls.extend(urls)
         
-        # Get list of keywords from open ai
-        keywords = openai_keywords_from_text(combined_text)
-        logging.debug(f'records_from_csv: keywords: {keywords}')
+        # Get list of keywords from text row values
+        text_keywords = openai_keywords_from_text(combined_text)
+        logging.debug(f'text_keywords: {text_keywords}')
+
+        # Get list of keywords from url row values
+        summary_keywords = openapi_keywords_from_multiple_webpages(combined_urls)
+        logging.debug(f'summary_keywords: {summary_keywords}')
+
+        # Combine keywords from text and urls
+        keywords = set()
+        keywords.update(text_keywords)
+        keywords.update(summary_keywords)
+
+        logging.debug(f'composite keywords: {keywords}')
 
         if keywords is None:
             logging.warning(f'records_from_csv: No keywords found for row: {row}')
@@ -192,7 +262,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         filename='logs.log', 
         encoding='utf-8', 
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
         )
@@ -212,5 +282,6 @@ if __name__ == "__main__":
     output = args.output
 
     # Run keyword extraction
-    logging.info(f'extract_keywords_from_csv_string_columns: starting extraction for file: {file}, headers: {headers}, keep: {keep}, output: {output}')
+    logging.info(f'\n\n')
+    logging.info(f'STARTING keyword generation for file: {file}, headers: {headers}, keep: {keep}, output: {output}')
     extract_keywords_from_csv_string_columns(file, headers, keep, output)
